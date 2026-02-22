@@ -3,7 +3,7 @@ name: Kubernetes Deploy Pipeline
 on:
   push:
     branches:
-      - k8s-branch
+      - kubernetes-branch
 
 jobs:
   k8s-deploy:
