@@ -1,0 +1,19 @@
+name: Docker Compose Pipeline
+
+on:
+  push:
+    branches:
+      - compose-branch # Sirf compose branch par chalega
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Docker Compose
+        run: docker compose up -d --build
+
+      - name: Verify Running Containers
+        run: docker compose ps

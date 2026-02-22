@@ -1,0 +1,27 @@
+name: Kubernetes Deploy Pipeline
+
+on:
+  push:
+    branches:
+      - kubernetes-branch # Sirf k8s branch par chalega
+
+jobs:
+  k8s-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.8.0
+
+      - name: Build and Load Image into Kind
+        run: |
+          docker build -t my-ecommerce-app:latest .
+          kind load docker-image my-ecommerce-app:latest --name chart-testing
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/
+          sleep 10 # Pods ko start hone ka time dena
+          kubectl get pods
