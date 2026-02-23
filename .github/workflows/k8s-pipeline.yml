@@ -1,0 +1,43 @@
+name: Kubernetes Deploy Pipeline
+
+on:
+  push:
+    branches:
+      - kubernetes-branch
+
+jobs:
+  k8s-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.8.0
+
+      - name: Build and Load Image into Kind
+        run: |
+          docker build -t my-ecommerce-app:latest .
+          kind load docker-image my-ecommerce-app:latest --name chart-testing
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f kubernetes/
+          sleep 10
+          kubectl get pods
+
+      - name: Validate Kubernetes Deployment and Test Port
+        run: |
+          # Background mein port-forward run karna (& ka nishaan background ke liye hai)
+          kubectl port-forward svc/ecommerce-service 8081:80 &
+          
+          # Pods ko traffic ready karne ke liye 10 seconds dena
+          sleep 10 
+          
+          # Curl ke zariye test karna
+          if curl -s -f http://localhost:8081 > /dev/null; then
+            echo "Success: K8s Application is live and responding on port 8081!"
+          else
+            echo "Error: K8s Application failed to respond."
+            exit 1
+          fi
